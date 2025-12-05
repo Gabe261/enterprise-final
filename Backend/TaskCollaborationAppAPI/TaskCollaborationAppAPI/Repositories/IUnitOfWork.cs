@@ -2,6 +2,9 @@
 {
     public interface IUnitOfWork
     {
-        // IUnitOfWork - Transaction coordinator
+        ITaskRepository Tasks { get; }
+        IUserRepository Users { get; }
+
+        int Complete();
     }
 }

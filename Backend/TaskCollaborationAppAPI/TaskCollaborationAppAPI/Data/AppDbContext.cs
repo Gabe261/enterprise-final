@@ -7,7 +7,7 @@ namespace TaskCollaborationAppAPI.Data
     {
         public DbSet<User> Users { get; set; }
 
-        public DbSet<Models.Task> Tasks { get; set; }
+        public DbSet<TaskItem> Tasks { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -67,8 +67,8 @@ namespace TaskCollaborationAppAPI.Data
                     CreatedAt = new DateTime(2025, 11, 17)
                 }
             );
-            modelBuilder.Entity<Models.Task>().HasData(
-                new Models.Task
+            modelBuilder.Entity<TaskItem>().HasData(
+                new TaskItem
                 {
                     Id = 1,
                     Title = "Initial Task",
@@ -81,7 +81,7 @@ namespace TaskCollaborationAppAPI.Data
                     IsArchived = false,
                     ArchivedAt = null
                 },
-                new Models.Task
+                new TaskItem
                 {
                     Id = 2,
                     Title = "Second Task",
@@ -94,7 +94,7 @@ namespace TaskCollaborationAppAPI.Data
                     IsArchived = true,
                     ArchivedAt = new DateTime(2025, 11, 20)
                 },
-                new Models.Task
+                new TaskItem
                 {
                     Id = 3,
                     Title = "Third Task",

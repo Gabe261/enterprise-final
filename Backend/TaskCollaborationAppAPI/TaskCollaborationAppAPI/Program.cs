@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TaskCollaborationAppAPI.Data;
+using TaskCollaborationAppAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("FinalDb-DanyKo-GabrielSiewert"));
 
 /* Register Repository, Unit Of Work, Service patterns */
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 /* JWT and Google */
 
@@ -53,15 +57,15 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDataba
 //            if (!string.IsNullOrWhiteSpace(sessionToken))
 //            {
 //                context.Token = sessionToken;
-//                return Task.CompletedTask;
+//                return TaskItem.CompletedTask;
 //            }
 
-//            return Task.CompletedTask;
+//            return TaskItem.CompletedTask;
 //        }
 //    };
 //});
 
-//builder.Services.AddAuthorization();
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -69,6 +73,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Used for in memory database
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

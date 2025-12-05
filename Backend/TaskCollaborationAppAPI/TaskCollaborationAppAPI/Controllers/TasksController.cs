@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TaskCollaborationAppAPI.Models;
+using TaskCollaborationAppAPI.Repositories;
 
 namespace TaskCollaborationAppAPI.Controllers
 {
@@ -7,7 +9,20 @@ namespace TaskCollaborationAppAPI.Controllers
     [ApiController]
     public class TasksController : ControllerBase
     {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public TasksController(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         /* GET api/tasks == Get all tasks (with pagination) */
+        [HttpGet]
+        public ActionResult<IEnumerable<TaskItem>> GetAllTasks([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var tasks = _unitOfWork.Tasks.GetAllTasks(pageNumber, pageSize);
+            return Ok(tasks);
+        }
 
         /* GET api/tasks/{id} == Get single task */
 

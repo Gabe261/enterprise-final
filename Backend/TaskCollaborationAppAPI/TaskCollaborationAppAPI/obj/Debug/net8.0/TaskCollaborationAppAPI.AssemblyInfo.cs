@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TaskCollaborationAppAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dcdf864db8951525ed7f7d4121a70f3be3c65613")]
 [assembly: System.Reflection.AssemblyProductAttribute("TaskCollaborationAppAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TaskCollaborationAppAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

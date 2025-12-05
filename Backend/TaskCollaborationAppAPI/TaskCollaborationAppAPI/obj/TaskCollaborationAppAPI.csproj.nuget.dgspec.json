@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\gabed\\_Conestoga\\Enterprise\\TeamGsDk_TaskCollaborationApp\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI.csproj": {}
+    "C:\\Users\\gabed\\_Conestoga\\Enterprise\\Enterprise-final\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\gabed\\_Conestoga\\Enterprise\\TeamGsDk_TaskCollaborationApp\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI.csproj": {
+    "C:\\Users\\gabed\\_Conestoga\\Enterprise\\Enterprise-final\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\gabed\\_Conestoga\\Enterprise\\TeamGsDk_TaskCollaborationApp\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI.csproj",
+        "projectUniqueName": "C:\\Users\\gabed\\_Conestoga\\Enterprise\\Enterprise-final\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI.csproj",
         "projectName": "TaskCollaborationAppAPI",
-        "projectPath": "C:\\Users\\gabed\\_Conestoga\\Enterprise\\TeamGsDk_TaskCollaborationApp\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI.csproj",
+        "projectPath": "C:\\Users\\gabed\\_Conestoga\\Enterprise\\Enterprise-final\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI.csproj",
         "packagesPath": "C:\\Users\\gabed\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\gabed\\_Conestoga\\Enterprise\\TeamGsDk_TaskCollaborationApp\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\obj\\",
+        "outputPath": "C:\\Users\\gabed\\_Conestoga\\Enterprise\\Enterprise-final\\Backend\\TaskCollaborationAppAPI\\TaskCollaborationAppAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
