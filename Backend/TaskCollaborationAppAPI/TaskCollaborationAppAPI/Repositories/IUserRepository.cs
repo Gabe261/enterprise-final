@@ -1,7 +1,11 @@
-﻿namespace TaskCollaborationAppAPI.Repositories
+﻿using TaskCollaborationAppAPI.Models;
+
+namespace TaskCollaborationAppAPI.Repositories
 {
     public interface IUserRepository
     {
-        // IUserRepository - User-specific operations
+        IEnumerable<User> GetAllUsers();
+
+        User GetUserById(int id);
     }
 }
