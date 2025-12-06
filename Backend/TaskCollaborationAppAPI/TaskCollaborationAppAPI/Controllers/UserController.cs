@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TaskCollaborationAppAPI.Models;
 using TaskCollaborationAppAPI.Repositories;
@@ -18,6 +19,7 @@ namespace TaskCollaborationAppAPI.Controllers
 
         /* GET api/users == Get all users (for assignment) */
         [HttpGet]
+        [Authorize]
         public ActionResult GetAllUsers()
         {
             var users = _unitOfWork.Users.GetAllUsers();
@@ -26,6 +28,7 @@ namespace TaskCollaborationAppAPI.Controllers
 
         /* GET api/users/{id} == Get user details */
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<User> GetUserById(int id)
         {
             var user = _unitOfWork.Users.GetUserById(id);

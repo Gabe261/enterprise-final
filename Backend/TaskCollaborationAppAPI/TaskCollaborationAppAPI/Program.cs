@@ -18,9 +18,22 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 /* JWT and Google */
 
-//builder.Services.AddSingleton<JwtAuthService>();
+// builder.Services.AddSingleton<JwtAuthService>();
 
-//var jwtSecret = builder.Configuration["JwtSettings:Secret"];
+var jwtSecret = builder.Configuration["JwtSettings:Secret"];
+
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret))
+        };
+    });
 
 ///* Cookie Authentication from google.com */
 //builder.Services.AddAuthentication(options =>
@@ -90,10 +103,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
-
-//app.UseAuthentication();
-//app.UseAuthorization();
 
 app.MapControllers();
 

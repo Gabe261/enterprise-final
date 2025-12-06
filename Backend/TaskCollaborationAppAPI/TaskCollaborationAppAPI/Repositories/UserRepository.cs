@@ -19,7 +19,18 @@ namespace TaskCollaborationAppAPI.Repositories
 
         public User GetUserById(int id)
         {
-            return _context.Users.Find(id);
+            User existingUser = _context.Users.Find(id);
+            User userDetails = new User
+            {
+                Id = existingUser.Id,
+                Name = existingUser.Name,
+                Email = existingUser.Email,
+                Username = existingUser.Username,
+                PasswordHash = "###########",       // Blocking password
+                Role = existingUser.Role,
+                CreatedAt = existingUser.CreatedAt
+            };
+            return userDetails;
         }
     }
 }
