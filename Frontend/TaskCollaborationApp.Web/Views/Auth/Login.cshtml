@@ -1,0 +1,216 @@
+@* Views/Auth/Login.cshtml *@
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .login-container {
+            border: 1px solid #ddd;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #357ae8;
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+        }
+        #google-btn {
+            margin-top: 20px;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        .success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>🚀 Task Collaboration</h2>
+
+        <div id="message" class="message"></div>
+
+        <!-- Login form -->
+        <form id="login-form">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn">로그인</button>
+        </form>
+
+        <div class="divider">또는</div>
+
+        <!-- Google Login -->
+        <div id="google-btn"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://localhost:7144/api';  // API server address
+
+        // Google login initialization
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: '915273525515-i81oridk5s772pn3hbnmr7d4cdmgvr6i.apps.googleusercontent.com',
+                callback: handleGoogleLogin
+            });
+
+            google.accounts.id.renderButton(
+                document.getElementById('google-btn'),
+                { 
+                    theme: 'outline', 
+                    size: 'large',
+                    width: 350,
+                    text: 'signin_with'
+                }
+            );
+        };
+
+        // Google login callback
+        async function handleGoogleLogin(response) {
+            console.log("Google ID Token receieved:", response.credential);
+
+            try {
+                // Send Google ID Token to API server
+                const apiResponse = await fetch(`${API_URL}/auth/google`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        idToken: response.credential  // Google token
+                    })
+                });
+
+                const data = await apiResponse.json();
+
+                if (apiResponse.ok) {
+                    showMessage('Google login is successful!', 'success');
+                    console.log("JWT Token:", data.token);
+                    console.log("User:", data.user);
+
+                    // JWT token saved
+                    localStorage.setItem('jwtToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    // Go to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/Home/Dashboard';
+                    }, 1000);
+                } else {
+                    showMessage('Login failed: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('Server connection failed: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Regular login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Login successful!', 'success');
+                    console.log("JWT Token:", data.token);
+
+                    // JWT token saved
+                    localStorage.setItem('jwtToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    // Go to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/Home/Dashboard';
+                    }, 1000);
+                } else {
+                    showMessage('Login failed: ' + data, 'error');
+                }
+            } catch (error) {
+                showMessage('Server connection failed: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        });
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
