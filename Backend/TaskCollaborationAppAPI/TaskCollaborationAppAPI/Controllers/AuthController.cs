@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -24,7 +26,7 @@ namespace TaskCollaborationAppAPI.Controllers
         /* POST /api/auth/register == User registration */
 
         /* POST /api/auth/login == Login with username/passowrd */
-        [HttpPost("Login")]
+        [HttpPost("login")]
         public ActionResult Login([FromBody] LoginRequest request)
         {
             var user = _context.Users.FirstOrDefault(u => u.Username == request.Username && u.PasswordHash == request.Password);
@@ -32,11 +34,53 @@ namespace TaskCollaborationAppAPI.Controllers
             {
                 return Unauthorized("Invalid username or password");
             }
-            var token = GenerateToken(user);
+            var token = GenerateJwtToken(user);
             return Ok(new { token });
         }
 
         /* POST /api/auth/google == Google OAuth callback */
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GoogleCallback))
+            };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("google-callback")]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            var result = await HttpContext.AuthenticateAsync();
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Google authentication failed");
+            }
+
+            var claims = result.Principal!.Identities.FirstOrDefault()!.Claims;
+            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email not found in Google response");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+            
+            // Generate JWT token
+            var token = GenerateJwtToken(user);
+            var clientUrl = _configuration["ClientUrl"];
+
+            return Redirect($"{clientUrl}/Login/Callback?token={token}");
+        }
 
         /* POST /api/auth/refresh == Refresh JWT Token */
 
@@ -44,10 +88,12 @@ namespace TaskCollaborationAppAPI.Controllers
 
 
         // Generate JWT Token Helper Method.
-        private Object GenerateToken(User user)
+        private string GenerateJwtToken(User user)
         {
             var claims = new[]
             {
+                new Claim("email", user.Email),
+                new Claim("name", user.Name),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, user.Role)
             };

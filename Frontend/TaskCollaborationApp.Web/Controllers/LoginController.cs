@@ -1,0 +1,55 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+
+namespace TaskCollaborationApp.Web.Controllers
+{
+    public class LoginController : Controller
+    {
+        private readonly IConfiguration _configuration;
+
+        public LoginController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        [HttpGet]
+        public IActionResult Index()
+        {
+            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
+            return View();
+        }
+
+        public IActionResult Callback(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            var email = jwtToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? "N/A";
+            var name = jwtToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "N/A";
+
+            HttpContext.Session.SetString("JwtToken", token);
+            HttpContext.Session.SetString("UserEmail", email);
+            HttpContext.Session.SetString("UserName", name);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            // localStorage.clear()
+            return RedirectToAction("Login");
+        }
+    }
+}
