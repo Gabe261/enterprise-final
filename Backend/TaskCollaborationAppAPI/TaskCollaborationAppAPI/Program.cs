@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using TaskCollaborationAppAPI.Data;
 using TaskCollaborationAppAPI.Repositories;
 
@@ -16,67 +17,41 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-/* JWT and Google */
-
-// builder.Services.AddSingleton<JwtAuthService>();
+ //builder.Services.AddSingleton<JwtAuthService>();
 
 var jwtSecret = builder.Configuration["JwtSettings:Secret"];
 
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", options =>
+/* JWT and Google */
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath = "/Login/Index";  
+    options.AccessDeniedPath = "/Login/AccessDenied";
+})
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["GoogleAuth:ClientId"] ?? "";
+    options.ClientSecret = builder.Configuration["GoogleAuth:ClientSecret"] ?? "";
+    options.CallbackPath = "/signin-google"; 
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret))
-        };
-    });
-
-///* Cookie Authentication from google.com */
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-//}).AddCookie(options =>
-//{
-//    options.LoginPath = "/auth/login";
-//    options.AccessDeniedPath = "/auth/denied";
-//    options.LogoutPath = "/auth/logout";
-//}).AddGoogle(options =>
-//{
-//    options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
-//    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
-//    options.Scope.Add("profile");
-//    options.Scope.Add("email");
-//}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-//{
-//    options.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidateIssuer = false,
-//        ValidateAudience = false,
-//        ValidateLifetime = true,
-//        ValidateIssuerSigningKey = true,
-//        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret))
-//    };
-
-//    options.Events = new JwtBearerEvents
-//    {
-//        OnMessageReceived = context =>
-//        {
-//            var sessionToken = context.HttpContext.Session.GetString("JwtToken");
-//            if (!string.IsNullOrWhiteSpace(sessionToken))
-//            {
-//                context.Token = sessionToken;
-//                return TaskItem.CompletedTask;
-//            }
-
-//            return TaskItem.CompletedTask;
-//        }
-//    };
-//});
+        ValidateIssuer = true,  
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidateAudience = true, 
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+    };
+});
 
 builder.Services.AddAuthorization();
 

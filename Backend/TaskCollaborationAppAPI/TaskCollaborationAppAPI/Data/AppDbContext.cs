@@ -30,7 +30,7 @@ namespace TaskCollaborationAppAPI.Data
                 {
                     Id = 2,
                     Name = "Dany",
-                    Email = "imago910@gmail.com",
+                    Email = "iamgo910@gmail.com",
                     Username = "DanyK",
                     PasswordHash = "hashed_password_2",
                     Role = "User",
