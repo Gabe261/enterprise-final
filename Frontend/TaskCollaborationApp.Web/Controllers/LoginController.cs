@@ -40,7 +40,7 @@ namespace TaskCollaborationApp.Web.Controllers
             HttpContext.Session.SetString("UserName", userName);
             HttpContext.Session.SetString("Role", role);
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Task");
         }
 
         [HttpGet]

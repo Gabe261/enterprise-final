@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TaskCollaborationAppAPI.Controllers;
 using TaskCollaborationAppAPI.Data;
 using TaskCollaborationAppAPI.Repositories;
 
@@ -24,33 +25,33 @@ var jwtSecret = builder.Configuration["JwtSettings:Secret"];
 /* JWT and Google */
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-})
-.AddCookie(options =>
-{
-    options.LoginPath = "/Login/Index";  
-    options.AccessDeniedPath = "/Login/AccessDenied";
-})
-.AddGoogle(options =>
-{
-    options.ClientId = builder.Configuration["GoogleAuth:ClientId"] ?? "";
-    options.ClientSecret = builder.Configuration["GoogleAuth:ClientSecret"] ?? "";
-    options.CallbackPath = "/signin-google"; 
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,  
+        ValidateIssuer = true,
         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-        ValidateAudience = true, 
+        ValidateAudience = true,
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
     };
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.LoginPath = "/Login/Index";
+    options.AccessDeniedPath = "/Login/AccessDenied";
+})
+.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    options.ClientId = builder.Configuration["GoogleAuth:ClientId"] ?? "";
+    options.ClientSecret = builder.Configuration["GoogleAuth:ClientSecret"] ?? "";
+    options.CallbackPath = "/signin-google";
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 });
 
 builder.Services.AddAuthorization();
@@ -69,7 +70,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(clientUrl)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
