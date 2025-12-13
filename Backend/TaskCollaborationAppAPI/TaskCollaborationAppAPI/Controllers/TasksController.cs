@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TaskCollaborationAppAPI.Models;
 using TaskCollaborationAppAPI.Repositories;
 
@@ -56,9 +57,9 @@ namespace TaskCollaborationAppAPI.Controllers
         /* PUT api/tasks/{id} == Update task */
         [HttpPut("{id}")]
         [Authorize]
-        public ActionResult UpdateTaskItem(int id, TaskItem taskItem)
+        public ActionResult<TaskDto> UpdateTaskItem(int id, UpdateTaskDto updateTaskDto)
         {
-            var modifiedTaskItem = _unitOfWork.Tasks.UpdateTaskById(id, taskItem);
+            var modifiedTaskItem = _unitOfWork.Tasks.UpdateTaskById(id, updateTaskDto);
             _unitOfWork.Complete();
 
             if (modifiedTaskItem != null)
@@ -101,6 +102,12 @@ namespace TaskCollaborationAppAPI.Controllers
             int userId = 1; // Placeholder for current user id
             var tasks = _unitOfWork.Tasks.GetTasksAssignedToUserId(userId);
             return Ok(tasks);
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(userIdClaim, out var userId) ? userId : 0;
         }
     }
 }

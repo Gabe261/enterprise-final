@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TaskCollaborationAppAPI.Models
 {
@@ -14,6 +15,12 @@ namespace TaskCollaborationAppAPI.Models
 
         public int CreatedById { get; set; }
         public int? AssignedToId { get; set; }
+
+        [ForeignKey("CreatedById")]
+        public virtual User CreatedBy { get; set; }
+
+        [ForeignKey("AssignedToId")]
+        public virtual User? AssignedTo { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; }

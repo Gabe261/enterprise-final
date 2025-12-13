@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
 using TaskCollaborationAppAPI.Data;
 using TaskCollaborationAppAPI.Models;
 
@@ -13,61 +14,114 @@ namespace TaskCollaborationAppAPI.Repositories
             _context = context;
         }
 
-        public IEnumerable<TaskItem> GetAllTasks(int pageNumber, int pageSize)
+        public IEnumerable<TaskDto> GetAllTasks(int pageNumber, int pageSize)
         {
-            // TODO: implement page number and page size
-            return _context.Tasks.ToList();
+            return _context.Tasks
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .Where(t => !t.IsArchived)
+            .OrderByDescending(t => t.CreatedAt)
+            .Select(t => MapToDto(t))
+            .ToList();
         }
 
-        public TaskItem GetTaskById(int id)
+        public TaskDto? GetTaskById(int id)
         {
-            return _context.Tasks.Find(id);
+            var task = _context.Tasks
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefault(t => t.Id == id);
+
+            return MapToDto(task);
         }
 
-        public void AddTask(TaskItem task)
+        public IEnumerable<TaskDto> GetTasksByUserId(int userId)
         {
+            return _context.Tasks
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .Where(t => t.CreatedById == userId)
+            .OrderByDescending(t => t.CreatedAt)
+            .Select(t => MapToDto(t))
+            .ToList();
+        }
+
+        public IEnumerable<TaskDto> GetTasksAssignedToUserId(int userId)
+        {
+            return _context.Tasks
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .Where(t => t.AssignedToId == userId)
+            .OrderByDescending(t => t.CreatedAt)
+            .Select(t => MapToDto(t))
+            .ToList();
+        }
+
+        public TaskItem AddTask(TaskItem task)
+        {
+            task.CreatedAt = DateTime.UtcNow;
+            task.UpdatedAt = DateTime.UtcNow;
+            task.IsArchived = false;
+
             _context.Tasks.Add(task);
+            return task;
         }
 
-        public TaskItem UpdateTaskById(int id, TaskItem task)
+        public TaskItem? UpdateTaskById(int id, UpdateTaskDto updateTaskDto)
         {
-            if(id == task.Id)
+            var task = _context.Tasks.FirstOrDefault(t => t.Id == id);
+
+            if (task == null) return null;
+
+            if (!string.IsNullOrEmpty(updateTaskDto.Title))
+                task.Title = updateTaskDto.Title;
+
+            if (updateTaskDto.Description != null)
+                task.Description = updateTaskDto.Description;
+
+            if (!string.IsNullOrEmpty(updateTaskDto.Status))
             {
-                _context.Tasks.Update(task);
-                return task;
+                if (Enum.TryParse<TaskStatusTypes>(updateTaskDto.Status, out var status))
+                    task.Status = status;
             }
-            return null;
+
+            if (updateTaskDto.AssignedToId.HasValue)
+                task.AssignedToId = updateTaskDto.AssignedToId.Value == 0 ? null : updateTaskDto.AssignedToId;
+
+            task.UpdatedAt = DateTime.UtcNow;
+
+            return task;
         }
 
-        public void DeleteTaskById(int id)
+        public bool DeleteTaskById(int id)
         {
-            var task = _context.Tasks.Find(id);
-            if(task != null)
-            {
-                _context.Tasks.Remove(task);
-            }
+            var task = _context.Tasks.FirstOrDefault(t => t.Id == id);
+            if (task == null) return false;
+
+            task.IsArchived = true;
+            task.ArchivedAt = DateTime.UtcNow;
+
+            return true;
         }
 
-        public IEnumerable<TaskItem> GetTasksByUserId(int userId)
+        private TaskDto MapToDto(TaskItem task)
         {
-            var user = _context.Users.Find(userId);
-            if (user == null)
+            return new TaskDto
             {
-                return Enumerable.Empty<TaskItem>();
-            }
-
-            return _context.Tasks.Where(t => t.CreatedById == userId).ToList();
-        }
-
-        public IEnumerable<TaskItem> GetTasksAssignedToUserId(int userId)
-        {
-            var user = _context.Users.Find(userId);
-            if (user == null)
-            {
-                return Enumerable.Empty<TaskItem>();
-            }
-
-            return _context.Tasks.Where(t => t.AssignedToId == userId).ToList();
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                Status = task.Status.ToString(),
+                CreatedById = task.CreatedById,
+                CreatedByName = task.CreatedBy?.Name,
+                CreatedByEmail = task.CreatedBy?.Email,
+                AssignedToId = task.AssignedToId,
+                AssignedToName = task.AssignedTo?.Name,
+                AssignedToEmail = task.AssignedTo?.Email,
+                CreatedAt = task.CreatedAt,
+                UpdatedAt = task.UpdatedAt,
+                IsArchived = task.IsArchived
+            };
         }
     }
 }

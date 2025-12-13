@@ -15,6 +15,20 @@ namespace TaskCollaborationAppAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Set up User-Task table relations
+            modelBuilder.Entity<TaskItem>()
+                .HasOne(t => t.CreatedBy)
+                .WithMany()
+                .HasForeignKey(t => t.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TaskItem>()
+                .HasOne(t => t.AssignedTo)
+                .WithMany()
+                .HasForeignKey(t => t.AssignedToId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
             modelBuilder.Entity<User>().HasData(
                 new User
                 {
@@ -88,10 +102,10 @@ namespace TaskCollaborationAppAPI.Data
                     Description = "This is the second task in the system.",
                     Status = TaskStatusTypes.ToDo,
                     CreatedById = 1,
-                    AssignedToId = null,
+                    AssignedToId = 1,
                     CreatedAt = new DateTime(2025, 11, 15),
                     UpdatedAt = new DateTime(2025, 11, 16),
-                    IsArchived = true,
+                    IsArchived = false,
                     ArchivedAt = new DateTime(2025, 11, 20)
                 },
                 new TaskItem
@@ -104,6 +118,19 @@ namespace TaskCollaborationAppAPI.Data
                     AssignedToId = 2,
                     CreatedAt = new DateTime(2025, 11, 17),
                     UpdatedAt = new DateTime(2025, 11, 18),
+                    IsArchived = false,
+                    ArchivedAt = null
+                },
+                new TaskItem
+                {
+                    Id = 4,
+                    Title = "Fourth Task",
+                    Description = "This is the fourth task in the system.",
+                    Status = TaskStatusTypes.Review,
+                    CreatedById = 1,
+                    AssignedToId = null,
+                    CreatedAt = new DateTime(2025, 12, 10),
+                    UpdatedAt = new DateTime(2025, 12, 12),
                     IsArchived = false,
                     ArchivedAt = null
                 }
