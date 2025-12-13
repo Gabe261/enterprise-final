@@ -102,10 +102,14 @@ namespace TaskCollaborationAppAPI.Controllers
 
             var secret = _configuration["JwtSettings:Secret"];
             var expiresDays = int.Parse(_configuration["JwtSettings:ExpiresDays"]);
+            var audience = _configuration["JwtSettings:Audience"];
+            var issuer = _configuration["JwtSettings:Issuer"];
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(
+                audience: audience,
+                issuer: issuer,
                 claims: claims,
                 expires: DateTime.Now.AddDays(expiresDays),
                 signingCredentials: creds
