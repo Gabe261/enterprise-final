@@ -614,16 +614,10 @@
                 });
                 console.log("Response:", `${response.status}`);
 
-                if (response.status === 401) {
-                    console.error('401 Unauthorized - Token validation failed');
-                    const responseText = await response.text();
-                    console.error('Response body:', responseText);
-                    return;
-                }
-
                 if (response.ok) {
                     const result = await response.json();
                     const tasks = result.data || result;
+                    console.log("Tasks:", tasks);
                     renderTasks(tasks);
                 } else {
                     showToast('Failed to load tasks', 'error');
@@ -653,8 +647,6 @@
                 if (filteredTasks.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
-                            <div class="empty-state-icon">📋</div>
-                            <div class="empty-state-text">No tasks</div>
                         </div>
                     `;
                 } else {
