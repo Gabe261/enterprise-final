@@ -77,9 +77,29 @@
             margin-top: 20px;
         }
 
-            .btn:hover {
-                background: #156d13;
+        .btn:hover {
+            background: #156d13;
+        }
+
+        .message {
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 400;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
             }
+
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -87,24 +107,87 @@
         <div class="success-icon">✅</div>
         <h1>Login Successful!</h1>
 
+        <div id="message" class="message"></div>
+
         <div class="info-box">
             <div class="info-label">📧 Email</div>
-            <div class="info-value">@ViewBag.Email</div>
+            <div class="info-value" id="username">@ViewBag.Email</div>
         </div>
 
         <div class="info-box">
             <div class="info-label">👤 Name</div>
-            <div class="info-value">@ViewBag.Name</div>
+            <div class="info-value" id="name">@ViewBag.Name</div>
         </div>
 
         <div class="info-box">
             <div class="info-label">🔑 JWT Token</div>
-            <div class="info-value">@ViewBag.Token</div>
+            <div class="info-value" id="token">@ViewBag.Token</div>
         </div>
 
         <div style="text-align: center;">
             <a href="/Login/Index" class="btn">Logout</a>
         </div>
+        <form id="refresh-form">
+            <div style="text-align: center;">
+                <button type="submit" class="btn" id="refresh-btn">Refresh Token</button>
+            </div>
+        </form>
     </div>
+
+    <script>
+        const API_URL = '@ViewBag.ApiBaseUrl';
+
+
+        // Regular login
+        document.getElementById('refresh-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const name = document.getElementById('name').value;
+            //const token = document.getElementById('token').value;
+            const token = localStorage.getItem("jwtToken");
+
+            console.log("token:", token);
+            console.log("auth header:", `Bearer ${token}`);
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/refresh`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`,
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+
+                    showMessage('Refresh successful!', 'success');
+                    const data = await response.json();
+                    if (response.ok) {
+                        alert("NEW TOKEN: " + data.token);
+                    }
+                } else {
+                    showMessage('Refresh failed: ' + (data.message || data), 'error');
+                    alert("FAILED: " + response.json);
+                }
+            } catch (error) {
+                showMessage('Connection error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        });
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
