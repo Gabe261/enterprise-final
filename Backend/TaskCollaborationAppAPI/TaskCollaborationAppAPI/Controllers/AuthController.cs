@@ -94,6 +94,8 @@ namespace TaskCollaborationAppAPI.Controllers
             {
                 new Claim("email", user.Email),
                 new Claim("name", user.Name),
+                new Claim("username", user.Username),
+                new Claim("role", user.Role),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, user.Role)
             };

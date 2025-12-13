@@ -10,7 +10,9 @@ namespace TaskCollaborationApp.Web.Controllers
         {
             ViewBag.Token = HttpContext.Session.GetString("JwtToken") ?? "No token";
             ViewBag.Email = HttpContext.Session.GetString("UserEmail") ?? "No email";
-            ViewBag.Name = HttpContext.Session.GetString("UserName") ?? "No name";
+            ViewBag.Name = HttpContext.Session.GetString("Name") ?? "No name";
+            ViewBag.UserName = HttpContext.Session.GetString("UserName") ?? "No username";
+            ViewBag.Role = HttpContext.Session.GetString("Role") ?? "No role";
 
             return View();
         }

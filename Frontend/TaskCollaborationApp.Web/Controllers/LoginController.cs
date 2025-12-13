@@ -31,10 +31,14 @@ namespace TaskCollaborationApp.Web.Controllers
 
             var email = jwtToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? "N/A";
             var name = jwtToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "N/A";
+            var userName = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value ?? "N/A";
+            var role = jwtToken.Claims.FirstOrDefault(c => c.Type == "role")?.Value ?? "N/A";
 
             HttpContext.Session.SetString("JwtToken", token);
             HttpContext.Session.SetString("UserEmail", email);
-            HttpContext.Session.SetString("UserName", name);
+            HttpContext.Session.SetString("Name", name);
+            HttpContext.Session.SetString("UserName", userName);
+            HttpContext.Session.SetString("Role", role);
 
             return RedirectToAction("Index", "Home");
         }
