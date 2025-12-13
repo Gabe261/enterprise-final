@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using TaskCollaborationAppAPI.Controllers;
 using TaskCollaborationAppAPI.Data;
+using TaskCollaborationAppAPI.Hubs;
 using TaskCollaborationAppAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +20,10 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
- //builder.Services.AddSingleton<JwtAuthService>();
+//builder.Services.AddSingleton<JwtAuthService>();
+
+/* Add Signal R */
+builder.Services.AddSignalR();
 
 var jwtSecret = builder.Configuration["JwtSettings:Secret"];
 
@@ -40,6 +44,21 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+    };
+
+    /* Token validation for signalR */
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/taskHub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
@@ -105,5 +124,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<TaskHub>("/taskHub");
 
 app.Run();

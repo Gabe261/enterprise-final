@@ -153,9 +153,9 @@
             transition: all 0.2s;
         }
 
-            .btn-primary:hover {
-                background: #156d13;
-            }
+        .btn-primary:hover {
+            background: #156d13;
+        }
 
         /* Kanban Board */
         .kanban-board {
@@ -257,10 +257,10 @@
             transition: all 0.2s;
         }
 
-            .task-card:hover {
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                transform: translateY(-2px);
-            }
+        .task-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
 
         .task-title {
             font-size: 14px;
@@ -296,95 +296,6 @@
             font-size: 11px;
         }
 
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            top: 80px;
-            right: 24px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 400px;
-        }
-
-        .toast {
-            background: #ffffff;
-            border-radius: 4px;
-            padding: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: start;
-            gap: 12px;
-            animation: slideIn 0.3s ease;
-            border-left: 4px solid;
-        }
-
-        @@keyframes slideIn {
-            from
-
-        {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        }
-
-        .toast.success {
-            border-left-color: #00875a;
-        }
-
-        .toast.info {
-            border-left-color: #0052cc;
-        }
-
-        .toast.warning {
-            border-left-color: #ff991f;
-        }
-
-        .toast.error {
-            border-left-color: #de350b;
-        }
-
-        .toast-icon {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .toast-content {
-            flex: 1;
-        }
-
-        .toast-message {
-            font-size: 14px;
-            color: #1a1a1a;
-            line-height: 1.5;
-        }
-
-        .toast-close {
-            background: none;
-            border: none;
-            color: #b3b3b3;
-            cursor: pointer;
-            font-size: 20px;
-            line-height: 1;
-            padding: 0;
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
-            .toast-close:hover {
-                color: #757575;
-            }
-
         /* Loading State */
         .loading-spinner {
             display: inline-block;
@@ -397,16 +308,14 @@
         }
 
         @@keyframes spin {
-            0%
-
-        {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-
+        0%
+            {
+                transform: rotate(0deg);
+            }
+        100% 
+            {
+                transform: rotate(360deg);
+            }
         }
 
         .empty-state {
@@ -427,31 +336,24 @@
         /* Responsive */
         @@media (max-width: 1200px) {
             .kanban-board
-
-        {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
+            {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         @@media (max-width: 768px) {
-            .kanban-board
-
-        {
-            grid-template-columns: 1fr;
-        }
-
-        .header {
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .page-header {
-            flex-direction: column;
-            gap: 12px;
-            align-items: stretch;
-        }
-
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .page-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
         }
     </style>
 </head>
@@ -554,9 +456,6 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
     <script>
         const API_URL = '@ViewBag.ApiBaseUrl';
@@ -604,10 +503,6 @@
         // Load tasks
         async function loadTasks() {
             try {
-                console.log("Token:", JWT_TOKEN);
-                console.log("API URL:", API_URL);
-                console.log(`Request URL: "${API_URL}/api/tasks"`);
-
                 const response = await fetch(`${API_URL}/api/tasks`, {
                     headers: {
                         'Authorization': `Bearer ${JWT_TOKEN}`,
@@ -694,23 +589,23 @@
                 .build();
 
             connection.on("TaskCreated", (task) => {
-                showToast(`✅ Task '${task.title}' created successfully`, 'success');
+                showToast(`Task '${task.title}' created successfully`, 'success');
                 loadTasks();
             });
 
             connection.on("TaskUpdated", (task) => {
-                showToast(`📝 Task '${task.title}' status updated to: ${task.status}`, 'info');
+                showToast(`Task '${task.title}' status updated to: ${task.status}`, 'info');
                 loadTasks();
             });
 
             connection.on("TaskDeleted", (taskId, title) => {
-                showToast(`🗑️ Task deleted: ${title}`, 'warning');
+                showToast(`Task deleted: ${title}`, 'warning');
                 loadTasks();
             });
 
             connection.on("TaskAssigned", (task) => {
-                if (currentUser && task.assignedToId === currentUser.id) {
-                    showToast(`👤 You have been assigned to: ${task.title}`, 'info');
+                if (currentUser && task.assignedToId === parseInt(currentUser.userId)) {
+                    showToast(`You have been assigned to: ${task.title}`, 'info');
                 }
                 loadTasks();
             });
@@ -726,26 +621,14 @@
 
         // Show toast notification
         function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
+            const prefix = {
+                success: '✅ ',
+                info: 'ℹ️ ',
+                warning: '⚠️ ',
+                error: '❌ '
+            }[type] || '';
 
-            const icons = {
-                success: '✅',
-                info: 'ℹ️',
-                warning: '⚠️',
-                error: '❌'
-            };
-
-            toast.innerHTML = `
-                <div class="toast-icon">${icons[type]}</div>
-                <div class="toast-content">
-                    <div class="toast-message">${escapeHtml(message)}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-            `;
-
-            container.appendChild(toast);
+            alert(prefix + message);
         }
 
         // View task details

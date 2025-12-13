@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
+using TaskCollaborationAppAPI.Hubs;
 using TaskCollaborationAppAPI.Models;
 using TaskCollaborationAppAPI.Repositories;
 
@@ -12,10 +12,12 @@ namespace TaskCollaborationAppAPI.Controllers
     public class TasksController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHubContext<TaskHub> _hub;
 
-        public TasksController(IUnitOfWork unitOfWork)
+        public TasksController(IUnitOfWork unitOfWork, IHubContext<TaskHub> hub)
         {
             _unitOfWork = unitOfWork;
+            _hub = hub;
         }
 
         /* GET api/tasks == Get all tasks (with pagination) */
@@ -43,7 +45,7 @@ namespace TaskCollaborationAppAPI.Controllers
         /* POST api/tasks == Create new task */
         [HttpPost]
         [Authorize]
-        public ActionResult AddTaskItem(TaskDto taskDto)
+        public async Task<ActionResult> AddTaskItem(TaskDto taskDto)
         {
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
             if (taskDto.CreatedById == 0)
@@ -69,19 +71,35 @@ namespace TaskCollaborationAppAPI.Controllers
             _unitOfWork.Tasks.AddTask(taskItem);
             _unitOfWork.Complete();
 
+            /* Notification for task created */
+            await _hub.Clients.All.SendAsync("TaskCreated", taskDto);
+
+            /* Notification for assignee */
+            if (taskDto.AssignedToId != 0)
+            {
+                await _hub.Clients.All.SendAsync("TaskAssigned", taskDto);
+            }
+
             return Ok(new { id = taskItem.Id });
         }
 
         /* PUT api/tasks/{id} == Update task */
         [HttpPut("{id}")]
         [Authorize]
-        public ActionResult<TaskDto> UpdateTaskItem(int id, UpdateTaskDto updateTaskDto)
+        public async Task<ActionResult<TaskDto>> UpdateTaskItem(int id, UpdateTaskDto updateTaskDto)
         {
             var modifiedTaskItem = _unitOfWork.Tasks.UpdateTaskById(id, updateTaskDto);
             _unitOfWork.Complete();
 
             if (modifiedTaskItem != null)
             {
+                await _hub.Clients.All.SendAsync("TaskUpdated", modifiedTaskItem);
+
+                if (updateTaskDto.AssignedToId != 0)
+                {
+                    await _hub.Clients.All.SendAsync("TaskAssigned", modifiedTaskItem);
+                }
+
                 return Ok(modifiedTaskItem);
             }
             else
@@ -93,10 +111,16 @@ namespace TaskCollaborationAppAPI.Controllers
         /* DELETE api/tasks/{id} == Delete task */
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public ActionResult DeleteTaskItem(int id) 
+        public async Task<ActionResult> DeleteTaskItem(int id) 
         {
+            var task = _unitOfWork.Tasks.GetTaskById(id);
+            if (task == null) return NotFound();
+
             _unitOfWork.Tasks.DeleteTaskById(id);
             _unitOfWork.Complete();
+
+            await _hub.Clients.All.SendAsync("TaskDeleted", task.Id, task.Title);
+
             return Ok();
         }
 
@@ -120,12 +144,6 @@ namespace TaskCollaborationAppAPI.Controllers
             int userId = 1; // Placeholder for current user id
             var tasks = _unitOfWork.Tasks.GetTasksAssignedToUserId(userId);
             return Ok(tasks);
-        }
-
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.TryParse(userIdClaim, out var userId) ? userId : 0;
         }
     }
 }
