@@ -552,6 +552,7 @@
             const userRole = '@ViewBag.Role';
 
             currentUser = {
+                userId: '@ViewBag.UserId',
                 name: userName,
                 role: userRole,
                 email: '@ViewBag.Email',
@@ -625,18 +626,12 @@
             const status = document.getElementById('task-status').value;
             const assignedToIdRaw = document.getElementById('task-assignee').value || null;
 
-            console.log('title:', title);
-            console.log('description:', description);
-            console.log('status:', status);
-            console.log('createdById (raw):', currentUser.id);
-            console.log('assignedToId (raw):', assignedToIdRaw);
-            console.log('currentUser:', currentUser);
-
             // Get form data
             const formData = {
                 title: title,
                 description: description,
                 status: status,
+                createdById: parseInt(currentUser.userId),
                 assignedToId: parseInt(document.getElementById('task-assignee').value) || null
             };
 

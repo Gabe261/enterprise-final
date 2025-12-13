@@ -46,7 +46,7 @@ namespace TaskCollaborationAppAPI.Controllers
         public ActionResult AddTaskItem(TaskDto taskDto)
         {
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
-            if (userIdClaim == null)
+            if (taskDto.CreatedById == 0)
                 return Unauthorized();
 
             if (!Enum.TryParse<TaskStatusTypes>(taskDto.Status, out var status))
@@ -59,7 +59,7 @@ namespace TaskCollaborationAppAPI.Controllers
                 Title = taskDto.Title,
                 Description = taskDto.Description,
                 Status = status,
-                CreatedById = userId,
+                CreatedById = taskDto.CreatedById,
                 AssignedToId = taskDto.AssignedToId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,

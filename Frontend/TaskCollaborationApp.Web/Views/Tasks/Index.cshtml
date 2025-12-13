@@ -583,8 +583,10 @@
             // Set user info from ViewBag
             const userName = '@ViewBag.Name';
             const userRole = '@ViewBag.Role';
-
+            console.log(`User Role: ${userRole}`);
+            
             currentUser = {
+                userId: '@ViewBag.UserId',
                 name: userName,
                 role: userRole,
                 email: '@ViewBag.Email',
@@ -631,6 +633,11 @@
         // Render tasks on board
         function renderTasks(tasks) {
             const statuses = ['ToDo', 'Development', 'Review', 'Merge', 'Done'];
+
+            // Task Access Authorization
+            if (currentUser.role !== 'Admin') {
+                tasks = tasks.filter(t => t.assignedToId === parseInt(currentUser.userId));
+            }
 
             statuses.forEach(status => {
                 const statusKey = status.toLowerCase();

@@ -41,6 +41,7 @@ namespace TaskCollaborationApp.Web.Controllers
         {
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             ViewBag.Token = HttpContext.Session.GetString("JwtToken") ?? "No token";
+            ViewBag.UserId = HttpContext.Session.GetString("UserId") ?? "No userId";
             ViewBag.Name = HttpContext.Session.GetString("Name") ?? "";
             ViewBag.Email = HttpContext.Session.GetString("Email") ?? "";
             ViewBag.UserName = HttpContext.Session.GetString("UserName") ?? "";
