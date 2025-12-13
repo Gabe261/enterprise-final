@@ -37,6 +37,13 @@ namespace TaskCollaborationApp.Web.Controllers
             return View();
         }
 
+        public IActionResult Delete(int id)
+        {
+            SetViewBagData();
+            ViewBag.TaskId = id;
+            return View();
+        }
+
         private void SetViewBagData()
         {
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
