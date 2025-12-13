@@ -1,0 +1,848 @@
+﻿@{
+    ViewData["Title"] = "Task Details";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Details - Task Collaboration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #fafafa;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: #ffffff;
+            border-bottom: 1px solid #e6e6e6;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: -0.5px;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #757575;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+            .nav-link:hover {
+                background: #f9f9f9;
+                color: #1a1a1a;
+            }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1a8917;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            transition: all 0.2s;
+        }
+
+            .btn-logout:hover {
+                background: #f9f9f9;
+                border-color: #d6d6d6;
+            }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+            .breadcrumb a {
+                color: #757575;
+                text-decoration: none;
+            }
+
+                .breadcrumb a:hover {
+                    color: #1a1a1a;
+                }
+
+        .breadcrumb-separator {
+            color: #d6d6d6;
+        }
+
+        .breadcrumb-current {
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        /* Details Card */
+        .details-card {
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e6e6e6;
+            overflow: hidden;
+        }
+
+        .details-header {
+            padding: 24px;
+            border-bottom: 1px solid #e6e6e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .details-header-left {
+            flex: 1;
+        }
+
+        .task-id {
+            font-size: 12px;
+            color: #b3b3b3;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .task-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-todo {
+            background: #dfe1e6;
+            color: #5e6c84;
+        }
+
+        .status-development {
+            background: #deebff;
+            color: #0052cc;
+        }
+
+        .status-review {
+            background: #fff0b3;
+            color: #ff991f;
+        }
+
+        .status-merge {
+            background: #eae6ff;
+            color: #6554c0;
+        }
+
+        .status-done {
+            background: #e3fcef;
+            color: #00875a;
+        }
+
+        .details-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid #e6e6e6;
+            background: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+            .btn:hover {
+                background: #f9f9f9;
+            }
+
+        .btn-primary {
+            background: #1a8917;
+            color: white;
+            border-color: #1a8917;
+        }
+
+            .btn-primary:hover {
+                background: #156d13;
+            }
+
+        .btn-danger {
+            background: #de350b;
+            color: white;
+            border-color: #de350b;
+        }
+
+            .btn-danger:hover {
+                background: #bf2600;
+            }
+
+        .details-body {
+            padding: 24px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+        }
+
+        /* Main Info */
+        .main-info {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .info-section {
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 24px;
+        }
+
+            .info-section:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-content {
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        /* Sidebar Info */
+        .sidebar-info {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        .info-item {
+            margin-bottom: 20px;
+        }
+
+            .info-item:last-child {
+                margin-bottom: 0;
+            }
+
+        .info-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #757575;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #1a1a1a;
+        }
+
+        .assignee-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .assignee-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #0052cc;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .assignee-details {
+            flex: 1;
+        }
+
+        .assignee-name {
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .assignee-role {
+            font-size: 12px;
+            color: #757575;
+        }
+
+        /* Status Select */
+        .status-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e6e6e6;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* Loading */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1a8917;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            0%
+
+        {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: #ffffff;
+            border-radius: 4px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        @@keyframes slideIn {
+            from
+
+        {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        }
+
+        .toast.success {
+            border-left-color: #00875a;
+        }
+
+        .toast.error {
+            border-left-color: #de350b;
+        }
+
+        .toast.warning {
+            border-left-color: #ff991f;
+        }
+
+        .toast.info {
+            border-left-color: #0052cc;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: #1a1a1a;
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+        }
+
+            .toast-close:hover {
+                color: #757575;
+            }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .details-grid
+
+        {
+            grid-template-columns: 1fr;
+        }
+
+        .details-header {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .details-actions {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-text" onclick="window.location.href='/Tasks'">Task</div>
+            <nav class="nav-links">
+                <a href="/Tasks" class="nav-link">Board</a>
+                <a href="/Tasks/My" class="nav-link">My Tasks</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar"></div>
+                <div class="user-name" id="user-name">Loading...</div>
+            </div>
+            <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="/Tasks">Board</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current" id="breadcrumb-task">Task Details</span>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-container" class="loading-container">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <!-- Details Card -->
+        <div id="details-card" class="details-card" style="display: none;">
+            <div class="details-header">
+                <div class="details-header-left">
+                    <div class="task-id" id="task-id">TASK-###</div>
+                    <h1 class="task-title" id="task-title">Loading...</h1>
+                    <span class="status-badge" id="status-badge">Loading</span>
+                </div>
+                <div class="details-actions">
+                    <button class="btn btn-primary" onclick="editTask()" id="btn-edit">Edit</button>
+                    <button class="btn btn-danger" onclick="deleteTask()" id="btn-delete">Delete</button>
+                </div>
+            </div>
+
+            <div class="details-body">
+                <div class="details-grid">
+                    <!-- Main Info -->
+                    <div class="main-info">
+                        <div class="info-section">
+                            <h3 class="section-title">Description</h3>
+                            <div class="section-content" id="task-description">
+                                No description provided.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Info -->
+                    <div class="sidebar-info">
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <select class="status-select" id="status-select" onchange="updateStatus()">
+                                <option value="ToDo">To Do</option>
+                                <option value="Development">Development</option>
+                                <option value="Review">Review</option>
+                                <option value="Merge">Merge</option>
+                                <option value="Done">Done</option>
+                            </select>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Assigned To</div>
+                            <div class="assignee-info" id="assignee-info">
+                                <div class="assignee-avatar">?</div>
+                                <div class="assignee-details">
+                                    <div class="assignee-name">Unassigned</div>
+                                    <div class="assignee-role">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Created</div>
+                            <div class="info-value" id="task-created">-</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Created By</div>
+                            <div class="info-value" id="task-creator">-</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Last Updated</div>
+                            <div class="info-value" id="task-updated">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        const API_URL = '@ViewBag.ApiBaseUrl';
+        const JWT_TOKEN = '@ViewBag.Token';
+        const TASK_ID = '@ViewBag.TaskId';
+
+        let currentTask = null;
+        let currentUser = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+            await loadTaskDetails();
+        });
+
+        // Load current user
+        async function loadCurrentUser() {
+            if (!JWT_TOKEN || JWT_TOKEN === 'No token') {
+                window.location.href = '/Login';
+                return;
+            }
+
+            const userName = '@ViewBag.Name';
+            const userRole = '@ViewBag.Role';
+
+            currentUser = {
+                name: userName,
+                role: userRole,
+                email: '@ViewBag.Email',
+                username: '@ViewBag.UserName'
+            };
+
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
+        }
+
+        // Load task details
+        async function loadTaskDetails() {
+            try {
+                const response = await fetch(`${API_URL}/api/tasks/${TASK_ID}`, {
+                    headers: {
+                        'Authorization': `Bearer ${JWT_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    currentTask = result.data || result;
+                    renderTaskDetails(currentTask);
+                } else if (response.status === 404) {
+                    showToast('Task not found', 'error');
+                    setTimeout(() => window.location.href = '/Tasks', 2000);
+                } else {
+                    showToast('Failed to load task details', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading task:', error);
+                showToast('Connection error: ' + error.message, 'error');
+            }
+        }
+
+        // Render task details
+        function renderTaskDetails(task) {
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('details-card').style.display = 'block';
+
+            // Header
+            document.getElementById('task-id').textContent = `TASK-${task.id}`;
+            document.getElementById('task-title').textContent = task.title;
+            document.getElementById('breadcrumb-task').textContent = `TASK-${task.id}`;
+
+            // Status badge
+            const statusBadge = document.getElementById('status-badge');
+            statusBadge.textContent = task.status;
+            statusBadge.className = `status-badge status-${task.status.toLowerCase()}`;
+
+            // Status select
+            document.getElementById('status-select').value = task.status;
+
+            // Description
+            document.getElementById('task-description').textContent = task.description || 'No description provided.';
+
+            // Assignee
+            if (task.assignedToName) {
+                const initial = task.assignedToName.charAt(0).toUpperCase();
+                document.getElementById('assignee-info').innerHTML = `
+                    <div class="assignee-avatar">${initial}</div>
+                    <div class="assignee-details">
+                        <div class="assignee-name">${escapeHtml(task.assignedToName)}</div>
+                        <div class="assignee-role">${escapeHtml(task.assignedToEmail || '-')}</div>
+                    </div>
+                `;
+            }
+
+            // Dates
+            document.getElementById('task-created').textContent = formatDate(task.createdAt);
+            document.getElementById('task-creator').textContent = task.createdByName || '-';
+            document.getElementById('task-updated').textContent = formatDate(task.updatedAt);
+
+            // Show/hide edit and delete buttons based on permissions
+            const canEdit = currentUser && (currentUser.role === 'Admin' || task.createdBy === currentUser.id);
+            document.getElementById('btn-edit').style.display = canEdit ? 'block' : 'none';
+            document.getElementById('btn-delete').style.display = canEdit ? 'block' : 'none';
+        }
+
+        // Update status
+        async function updateStatus() {
+            const newStatus = document.getElementById('status-select').value;
+
+            if (!currentTask || newStatus === currentTask.status) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/tasks/${TASK_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${JWT_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ...currentTask,
+                        status: newStatus
+                    })
+                });
+
+                if (response.ok) {
+                    showToast(`Status updated to ${newStatus}`, 'success');
+                    await loadTaskDetails();
+                } else {
+                    showToast('Failed to update status', 'error');
+                    document.getElementById('status-select').value = currentTask.status;
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                showToast('Connection error', 'error');
+                document.getElementById('status-select').value = currentTask.status;
+            }
+        }
+
+        // Edit task
+        function editTask() {
+            window.location.href = `/Tasks/Edit/${TASK_ID}`;
+        }
+
+        // Delete task
+        async function deleteTask() {
+            if (!confirm('Are you sure you want to delete this task?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/tasks/${TASK_ID}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${JWT_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    showToast('Task deleted successfully', 'success');
+                    setTimeout(() => window.location.href = '/Tasks', 1500);
+                } else {
+                    showToast('Failed to delete task', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Show toast
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: '✅',
+                info: 'ℹ️',
+                warning: '⚠️',
+                error: '❌'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-message">${escapeHtml(message)}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // Logout
+        function logout() {
+            window.location.href = '/Login/Logout';
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

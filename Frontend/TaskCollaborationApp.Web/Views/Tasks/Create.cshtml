@@ -1,0 +1,730 @@
+﻿@{
+    ViewData["Title"] = "Create Task";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Task - Task Collaboration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #fafafa;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: #ffffff;
+            border-bottom: 1px solid #e6e6e6;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: -0.5px;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #757575;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+            .nav-link:hover {
+                background: #f9f9f9;
+                color: #1a1a1a;
+            }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1a8917;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            transition: all 0.2s;
+        }
+
+            .btn-logout:hover {
+                background: #f9f9f9;
+                border-color: #d6d6d6;
+            }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+            .breadcrumb a {
+                color: #757575;
+                text-decoration: none;
+            }
+
+                .breadcrumb a:hover {
+                    color: #1a1a1a;
+                }
+
+        .breadcrumb-separator {
+            color: #d6d6d6;
+        }
+
+        .breadcrumb-current {
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e6e6e6;
+            overflow: hidden;
+        }
+
+        .form-header {
+            padding: 24px;
+            border-bottom: 1px solid #e6e6e6;
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            color: #757575;
+        }
+
+        .form-body {
+            padding: 24px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+            .form-group:last-child {
+                margin-bottom: 0;
+            }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: #de350b;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e6e6e6;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+            .form-input:focus,
+            .form-select:focus,
+            .form-textarea:focus {
+                outline: none;
+                border-color: #1a8917;
+                box-shadow: 0 0 0 3px rgba(26, 137, 23, 0.1);
+            }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #757575;
+            margin-top: 4px;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: #de350b;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-input.error,
+        .form-select.error,
+        .form-textarea.error {
+            border-color: #de350b;
+        }
+
+            .form-input.error:focus,
+            .form-select.error:focus,
+            .form-textarea.error:focus {
+                box-shadow: 0 0 0 3px rgba(222, 53, 11, 0.1);
+            }
+
+            .form-input.error ~ .form-error,
+            .form-select.error ~ .form-error,
+            .form-textarea.error ~ .form-error {
+                display: block;
+            }
+
+        /* Form Actions */
+        .form-actions {
+            padding: 24px;
+            border-top: 1px solid #e6e6e6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            border: 1px solid #e6e6e6;
+            background: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+            .btn:hover {
+                background: #f9f9f9;
+            }
+
+            .btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+        .btn-primary {
+            background: #1a8917;
+            color: white;
+            border-color: #1a8917;
+        }
+
+            .btn-primary:hover:not(:disabled) {
+                background: #156d13;
+            }
+
+        .btn-loading {
+            position: relative;
+            color: transparent;
+        }
+
+            .btn-loading::after {
+                content: '';
+                position: absolute;
+                width: 16px;
+                height: 16px;
+                top: 50%;
+                left: 50%;
+                margin-left: -8px;
+                margin-top: -8px;
+                border: 2px solid #ffffff;
+                border-top-color: transparent;
+                border-radius: 50%;
+                animation: spin 0.6s linear infinite;
+            }
+
+        @@keyframes spin {
+            to
+
+        {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: #ffffff;
+            border-radius: 4px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        @@keyframes slideIn {
+            from
+
+        {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        }
+
+        .toast.success {
+            border-left-color: #00875a;
+        }
+
+        .toast.error {
+            border-left-color: #de350b;
+        }
+
+        .toast.warning {
+            border-left-color: #ff991f;
+        }
+
+        .toast.info {
+            border-left-color: #0052cc;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: #1a1a1a;
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+        }
+
+            .toast-close:hover {
+                color: #757575;
+            }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .form-actions
+
+        {
+            flex-direction: column-reverse;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-text" onclick="window.location.href='/Tasks'">Task</div>
+            <nav class="nav-links">
+                <a href="/Tasks" class="nav-link">Board</a>
+                <a href="/Tasks/My" class="nav-link">My Tasks</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar"></div>
+                <div class="user-name" id="user-name">Loading...</div>
+            </div>
+            <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="/Tasks">Board</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Create Task</span>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            <div class="form-header">
+                <h1 class="form-title">Create New Task</h1>
+                <p class="form-subtitle">Fill in the details below to create a new task</p>
+            </div>
+
+            <form id="task-form">
+                <div class="form-body">
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Title <span class="required">*</span>
+                        </label>
+                        <input type="text"
+                               class="form-input"
+                               id="task-title"
+                               name="title"
+                               placeholder="Enter task title"
+                               required />
+                        <div class="form-error" id="title-error">Title is required</div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Description
+                        </label>
+                        <textarea class="form-textarea"
+                                  id="task-description"
+                                  name="description"
+                                  placeholder="Enter task description"></textarea>
+                        <div class="form-help">Provide a detailed description of the task</div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Status <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="task-status" name="status" required>
+                            <option value="ToDo" selected>To Do</option>
+                            <option value="Development">Development</option>
+                            <option value="Review">Review</option>
+                            <option value="Merge">Merge</option>
+                            <option value="Done">Done</option>
+                        </select>
+                    </div>
+
+                    <!-- Assigned To -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Assign To
+                        </label>
+                        <select class="form-select" id="task-assignee" name="assignedToId">
+                            <option value="">Unassigned</option>
+                            <!-- Users will be loaded dynamically -->
+                        </select>
+                        <div class="form-help">Select a team member to assign this task to</div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="cancel()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        Create Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        const API_URL = '@ViewBag.ApiBaseUrl';
+        const JWT_TOKEN = '@ViewBag.Token';
+
+        let currentUser = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+            await loadUsers();
+            setupFormValidation();
+        });
+
+        // Load current user
+        async function loadCurrentUser() {
+            if (!JWT_TOKEN || JWT_TOKEN === 'No token') {
+                window.location.href = '/Login';
+                return;
+            }
+
+            const userName = '@ViewBag.Name';
+            const userRole = '@ViewBag.Role';
+
+            currentUser = {
+                name: userName,
+                role: userRole,
+                email: '@ViewBag.Email',
+                username: '@ViewBag.UserName'
+            };
+
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
+        }
+
+        // Load users for assignment
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_URL}/api/users`, {
+                    headers: {
+                        'Authorization': `Bearer ${JWT_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const users = result.data || result;
+                    populateUserSelect(users);
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Populate user select dropdown
+        function populateUserSelect(users) {
+            const select = document.getElementById('task-assignee');
+
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = `${user.name} (${user.email})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Setup form validation
+        function setupFormValidation() {
+            const form = document.getElementById('task-form');
+            const titleInput = document.getElementById('task-title');
+
+            // Real-time validation for title
+            titleInput.addEventListener('input', () => {
+                if (titleInput.value.trim()) {
+                    titleInput.classList.remove('error');
+                }
+            });
+
+            // Form submission
+            form.addEventListener('submit', handleSubmit);
+        }
+
+        // Handle form submission
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            // Validate
+            if (!validateForm()) {
+                return;
+            }
+
+            // Get form data
+            const formData = {
+                title: document.getElementById('task-title').value.trim(),
+                description: document.getElementById('task-description').value.trim(),
+                status: document.getElementById('task-status').value,
+                assignedToId: document.getElementById('task-assignee').value || null
+            };
+
+            // Show loading state
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('btn-loading');
+
+            try {
+                const response = await fetch(`${API_URL}/api/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${JWT_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const task = result.data || result;
+
+                    showToast('Task created successfully!', 'success');
+
+                    // Redirect to task details after a short delay
+                    setTimeout(() => {
+                        window.location.href = `/Tasks/Details/${task.id}`;
+                    }, 1000);
+                } else {
+                    const error = await response.json();
+                    showToast(error.message || 'Failed to create task', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-loading');
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                showToast('Connection error: ' + error.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-loading');
+            }
+        }
+
+        // Validate form
+        function validateForm() {
+            let isValid = true;
+            const titleInput = document.getElementById('task-title');
+
+            if (!titleInput.value.trim()) {
+                titleInput.classList.add('error');
+                isValid = false;
+            } else {
+                titleInput.classList.remove('error');
+            }
+
+            return isValid;
+        }
+
+        // Cancel and go back
+        function cancel() {
+            if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+                window.location.href = '/Tasks';
+            }
+        }
+
+        // Show toast
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: '✅',
+                info: 'ℹ️',
+                warning: '⚠️',
+                error: '❌'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-message">${escapeHtml(message)}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // Logout
+        function logout() {
+            window.location.href = '/Login/Logout';
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
