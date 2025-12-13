@@ -92,6 +92,7 @@ namespace TaskCollaborationAppAPI.Controllers
         {
             var claims = new[]
             {
+                new Claim("id", user.Id.ToString()),
                 new Claim("email", user.Email),
                 new Claim("name", user.Name),
                 new Claim("username", user.Username),

@@ -43,15 +43,33 @@ namespace TaskCollaborationAppAPI.Controllers
         /* POST api/tasks == Create new task */
         [HttpPost]
         [Authorize]
-        public ActionResult AddTaskItem(TaskItem taskItem)
+        public ActionResult AddTaskItem(TaskDto taskDto)
         {
-            if (taskItem == null)
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            if (!Enum.TryParse<TaskStatusTypes>(taskDto.Status, out var status))
+                return BadRequest("Invalid status value.");
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            var taskItem = new TaskItem
             {
-                return BadRequest();
-            }
+                Title = taskDto.Title,
+                Description = taskDto.Description,
+                Status = status,
+                CreatedById = userId,
+                AssignedToId = taskDto.AssignedToId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsArchived = false
+            };
+
             _unitOfWork.Tasks.AddTask(taskItem);
             _unitOfWork.Complete();
-            return Ok();
+
+            return Ok(new { id = taskItem.Id });
         }
 
         /* PUT api/tasks/{id} == Update task */
