@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -35,6 +36,11 @@ namespace TaskCollaborationAppAPI.Controllers
                 return Unauthorized("Invalid username or password");
             }
             var token = GenerateJwtToken(user);
+            //HttpContext.GetType().GetProperty("User")!.SetValue(HttpContext, new ClaimsPrincipal(new ClaimsIdentity(new[]
+            //{
+            //    new Claim(ClaimTypes.Name, user.Username),
+            //    new Claim(ClaimTypes.Role, user.Role)
+            //})));
             return Ok(new { token });
         }
 
@@ -83,8 +89,29 @@ namespace TaskCollaborationAppAPI.Controllers
         }
 
         /* POST /api/auth/refresh == Refresh JWT Token */
+        [HttpPost("refresh")]
+        public ActionResult RefreshToken()
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Unauthorized();
+            }
+            var usernameClaim = identity.FindFirst(ClaimTypes.Name);
+            if (usernameClaim == null)
+            {
+                return Unauthorized();
+            }
+            var user = _context.Users.FirstOrDefault(u => u.Username == usernameClaim.Value);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+            var token = GenerateJwtToken(user);
+            return Ok(new { token });
+        }
 
-        /* GET /api/auth/me == Get cuurent user info */
+        /* GET /api/auth/me == Get current user info */
 
 
         // Generate JWT Token Helper Method.
