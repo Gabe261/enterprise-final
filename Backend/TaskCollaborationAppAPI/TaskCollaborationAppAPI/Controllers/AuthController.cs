@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TaskCollaborationAppAPI.Data;
 using TaskCollaborationAppAPI.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace TaskCollaborationAppAPI.Controllers
 {
@@ -52,7 +53,7 @@ namespace TaskCollaborationAppAPI.Controllers
         [HttpGet("google-callback")]
         public async Task<IActionResult> GoogleCallback()
         {
-            var result = await HttpContext.AuthenticateAsync();
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             if (!result.Succeeded)
             {
