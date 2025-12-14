@@ -24,8 +24,6 @@ namespace TaskCollaborationAppAPI.Controllers
             _configuration = configuration;
         }
 
-        /* POST /api/auth/register == User registration */
-
         /* POST /api/auth/login == Login with username/passowrd */
         [HttpPost("login")]
         public ActionResult Login([FromBody] LoginRequest request)
