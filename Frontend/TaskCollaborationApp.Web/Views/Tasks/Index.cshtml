@@ -397,10 +397,19 @@
             transition: all 0.2s;
         }
 
-            .task-card:hover {
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                transform: translateY(-2px);
-            }
+        .task-card-archived {
+            background: #c2e4f0;
+            border: 1px solid #e6e6e6;
+            border-radius: 4px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
 
         .task-title {
             font-size: 14px;
@@ -526,8 +535,6 @@
             <div class="logo-text">Task</div>
             <nav class="nav-links">
                 <a href="/tasks/index" class="nav-link active">Board</a>
-                <a href="/tasks/my" class="nav-link">My Tasks</a>
-                <a href="/tasks/all" class="nav-link" id="admin-link" style="display: none;">All Tasks</a>
             </nav>
         </div>
         <div class="header-right">
@@ -671,6 +678,7 @@
             await loadCurrentUser();
             await loadTasks();
             await initializeSignalR();
+            console.log("Current Token: ", JWT_TOKEN);
         });
 
         // Load current user from API
@@ -704,11 +712,6 @@
                     // Update UI
                     document.getElementById('user-name').textContent = user.name;
                     document.getElementById('user-avatar').textContent = user.name.charAt(0).toUpperCase();
-
-                    // Show admin link if user is admin
-                    if (user.role === 'Admin') {
-                        document.getElementById('admin-link').style.display = 'block';
-                    }
                 } else if (response.status === 401) {
                     // Token expired or invalid
                     showToast('Session expired. Please login again.', 'error');
@@ -782,7 +785,6 @@
             const btnRefresh = document.getElementById('btn-refresh');
             btnRefresh.disabled = true;
             btnRefresh.textContent = '🔄 Refreshing...';
-
             try {
                 const response = await fetch(`${API_URL}/api/auth/refresh`, {
                     method: 'POST',
@@ -809,7 +811,9 @@
 
                         setTimeout(() => {
                             window.location.reload();
+                            
                         }, 1000);
+                        console.log("New Token: ", JWT_TOKEN);
                     } catch (error) {
                         console.error("Error while updating Token:", error);
                         showToast('Failed to update session', 'error');
@@ -844,6 +848,7 @@
                     const result = await response.json();
                     const tasks = result.data || result;
                     renderTasks(tasks);
+                    console.log('Tasks loaded:', tasks);
                 } else {
                     showToast('Failed to load tasks', 'error');
                 }
@@ -891,7 +896,12 @@
         // Create task card element
         function createTaskCard(task) {
             const card = document.createElement('div');
-            card.className = 'task-card';
+            if(task.isArchived == false){
+                card.className = 'task-card';
+            } else {
+                card.className = 'task-card-archived';
+            }
+            
             card.onclick = () => viewTask(task.id);
 
             const assigneeInitial = task.assignedToName ? task.assignedToName.charAt(0).toUpperCase() : '?';
@@ -922,7 +932,7 @@
             });
 
             connection.on("TaskUpdated", (task) => {
-                showToast(`Task '${task.title}' status updated to: ${task.status}`, 'info');
+                showToast(`Task '${task.title}' got updated`, 'info');
                 loadTasks();
             });
 

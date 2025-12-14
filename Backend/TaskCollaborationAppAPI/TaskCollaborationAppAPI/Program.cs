@@ -21,7 +21,7 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-//builder.Services.AddHostedService<TaskCleanupService>();
+builder.Services.AddHostedService<TaskCleanupService>();
 
 /* Add Caching */
 builder.Services.AddMemoryCache();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
 using TaskCollaborationAppAPI.Hubs;
 using TaskCollaborationAppAPI.Models;
 using TaskCollaborationAppAPI.Repositories;
@@ -13,33 +14,91 @@ namespace TaskCollaborationAppAPI.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHubContext<TaskHub> _hub;
+        private readonly IMemoryCache _cache;
+        private readonly IConfiguration _configuration;
+        // cache keys
+        const string cacheTaskListKey = "tasksList";
+        private const string TaskCacheKeyPrefix = "task_";
+        private static readonly List<string> TaskDetailCacheKeys = new List<string>();
+        private static readonly object CacheLock = new object();
 
-        public TasksController(IUnitOfWork unitOfWork, IHubContext<TaskHub> hub)
+        public TasksController(IUnitOfWork unitOfWork, IHubContext<TaskHub> hub, IMemoryCache cache, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _hub = hub;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         /* GET api/tasks == Get all tasks (with pagination) */
         [HttpGet]
         [Authorize]
-        public ActionResult<IEnumerable<TaskItem>> GetAllTasks([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) // page number and size are placeholders for potential UI
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetAllTasks([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var tasks = _unitOfWork.Tasks.GetAllTasks(pageNumber, pageSize);
-            return Ok(tasks);
+            if (!_cache.TryGetValue(cacheTaskListKey, out IEnumerable<TaskDto> cachedTasks))
+            {
+                Response.Headers.Add("X-Cache", "MISS");
+
+                int cacheExpireTime = _configuration.GetValue<int>("CacheExpirationMinutes");
+
+                await Task.Delay(2000); // Simulate delay for demonstration
+
+                IEnumerable<TaskDto> tasksFromDb = _unitOfWork.Tasks.GetAllTasks(pageNumber, pageSize);
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(cacheExpireTime));
+
+                _cache.Set(cacheTaskListKey, tasksFromDb, cacheEntryOptions);
+                cachedTasks = tasksFromDb;
+            }
+            else
+            {
+                Response.Headers.Add("X-Cache", "HIT");
+            }
+            return Ok(cachedTasks);
         }
 
-        /* GET api/tasks/{id} == Get single task */
         [HttpGet("{id}")]
         [Authorize]
-        public ActionResult<TaskItem> GetTaskById(int id)
+        public async Task<ActionResult<TaskItem>> GetTaskById(int id)
         {
-            var taskItem = _unitOfWork.Tasks.GetTaskById(id);
-            if (taskItem == null)
+            string cacheKey = $"{TaskCacheKeyPrefix}{id}";
+
+            if (!_cache.TryGetValue(cacheKey, out TaskDto cachedTask))
             {
-                return NotFound();
+                // Cache MISS
+                Response.Headers.Add("X-Cache", "MISS");
+
+                int cacheExpireTime = _configuration.GetValue<int>("CacheExpirationMinutes", 5);
+                await Task.Delay(2000); // Simulate delay for demonstration
+
+                var taskItem = _unitOfWork.Tasks.GetTaskById(id);
+                if (taskItem == null)
+                {
+                    return NotFound();
+                }
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(cacheExpireTime));
+                _cache.Set(cacheKey, taskItem, cacheEntryOptions);
+
+                // Track this cache key
+                lock (CacheLock)
+                {
+                    if (!TaskDetailCacheKeys.Contains(cacheKey))
+                    {
+                        TaskDetailCacheKeys.Add(cacheKey);
+                    }
+                }
+
+                cachedTask = taskItem;
             }
-            return Ok(taskItem);
+            else
+            {
+                // Cache HIT
+                Response.Headers.Add("X-Cache", "HIT");
+            }
+
+            return Ok(cachedTask);
         }
 
         /* POST api/tasks == Create new task */
@@ -68,6 +127,7 @@ namespace TaskCollaborationAppAPI.Controllers
                 IsArchived = false
             };
 
+            _cache.Remove(cacheTaskListKey);
             _unitOfWork.Tasks.AddTask(taskItem);
             _unitOfWork.Complete();
 
@@ -100,6 +160,8 @@ namespace TaskCollaborationAppAPI.Controllers
                     await _hub.Clients.All.SendAsync("TaskAssigned", modifiedTaskItem);
                 }
 
+                InvalidateAllTaskCaches();
+
                 return Ok(modifiedTaskItem);
             }
             else
@@ -121,6 +183,8 @@ namespace TaskCollaborationAppAPI.Controllers
 
             await _hub.Clients.All.SendAsync("TaskDeleted", task.Id, task.Title);
 
+            InvalidateAllTaskCaches();
+
             return Ok();
         }
 
@@ -129,8 +193,7 @@ namespace TaskCollaborationAppAPI.Controllers
         [Authorize]
         public ActionResult GetActiveUsersTasks()
         {
-            // Use Session to Get Current User Id ??
-            int userId = 1; // Placeholder for current user id
+            int userId = 1; 
             var tasks = _unitOfWork.Tasks.GetTasksByUserId(userId);
             return Ok(tasks);
         }
@@ -140,10 +203,23 @@ namespace TaskCollaborationAppAPI.Controllers
         [Authorize]
         public ActionResult GetActiveUsersAssignedTasks()
         {
-            // Use Session to Get Current User Id ??
-            int userId = 1; // Placeholder for current user id
+            int userId = 1;
             var tasks = _unitOfWork.Tasks.GetTasksAssignedToUserId(userId);
             return Ok(tasks);
+        }
+
+        private void InvalidateAllTaskCaches()
+        {
+            _cache.Remove(cacheTaskListKey);
+
+            lock (CacheLock)
+            {
+                foreach (var key in TaskDetailCacheKeys)
+                {
+                    _cache.Remove(key);
+                }
+                TaskDetailCacheKeys.Clear();
+            }
         }
     }
 }

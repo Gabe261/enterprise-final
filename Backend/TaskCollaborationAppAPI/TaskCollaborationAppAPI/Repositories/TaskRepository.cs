@@ -97,8 +97,7 @@ namespace TaskCollaborationAppAPI.Repositories
             var task = _context.Tasks.FirstOrDefault(t => t.Id == id);
             if (task == null) return false;
 
-            task.IsArchived = true;
-            task.ArchivedAt = DateTime.UtcNow;
+            _context.Tasks.Remove(task);
 
             return true;
         }
