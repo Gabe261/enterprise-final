@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
 using TaskCollaborationAppAPI.Hubs;
 using TaskCollaborationAppAPI.Models;
 using TaskCollaborationAppAPI.Repositories;
@@ -13,20 +14,43 @@ namespace TaskCollaborationAppAPI.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHubContext<TaskHub> _hub;
+        private readonly IMemoryCache _cache;
+        private readonly IConfiguration _configuration;
 
-        public TasksController(IUnitOfWork unitOfWork, IHubContext<TaskHub> hub)
+        public TasksController(IUnitOfWork unitOfWork, IHubContext<TaskHub> hub, IMemoryCache cache, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _hub = hub;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         /* GET api/tasks == Get all tasks (with pagination) */
         [HttpGet]
         [Authorize]
-        public ActionResult<IEnumerable<TaskItem>> GetAllTasks([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) // page number and size are placeholders for potential UI
+        public async Task<ActionResult<IEnumerable<TaskItem>>> GetAllTasks([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var tasks = _unitOfWork.Tasks.GetAllTasks(pageNumber, pageSize);
-            return Ok(tasks);
+            const string cacheKey = "tasksList";
+            if(!_cache.TryGetValue(cacheKey, out IEnumerable<TaskDto> cachedTasks))
+            {
+                Response.Headers.Add("X-Cache", "MISS");
+
+                int cacheExpireTime = _configuration.GetValue<int>("CacheExpirationMinutes");
+
+                await Task.Delay(2000); // Simulate delay for demonstration
+
+                IEnumerable<TaskDto> tasksFromDb = _unitOfWork.Tasks.GetAllTasks(pageNumber, pageSize);
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(cacheExpireTime));
+
+                _cache.Set(cacheKey, tasksFromDb, cacheEntryOptions);
+                cachedTasks = tasksFromDb;
+            } 
+            else
+            {
+                Response.Headers.Add("X-Cache", "HIT");
+            }
+                return Ok(cachedTasks);
         }
 
         /* GET api/tasks/{id} == Get single task */

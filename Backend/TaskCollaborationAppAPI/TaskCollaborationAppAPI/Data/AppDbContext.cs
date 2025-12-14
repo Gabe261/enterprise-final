@@ -106,14 +106,14 @@ namespace TaskCollaborationAppAPI.Data
                     CreatedAt = new DateTime(2025, 11, 15),
                     UpdatedAt = new DateTime(2025, 11, 16),
                     IsArchived = false,
-                    ArchivedAt = new DateTime(2025, 11, 20)
+                    ArchivedAt = null
                 },
                 new TaskItem
                 {
                     Id = 3,
                     Title = "Third Task",
                     Description = "This is the third task in the system.",
-                    Status = TaskStatusTypes.Done,
+                    Status = TaskStatusTypes.Merge,
                     CreatedById = 1,
                     AssignedToId = 2,
                     CreatedAt = new DateTime(2025, 11, 17),

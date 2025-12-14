@@ -19,7 +19,6 @@ namespace TaskCollaborationAppAPI.Repositories
             return _context.Tasks
             .Include(t => t.CreatedBy)
             .Include(t => t.AssignedTo)
-            .Where(t => !t.IsArchived)
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => MapToDto(t))
             .ToList();

@@ -9,6 +9,7 @@ using TaskCollaborationAppAPI.Controllers;
 using TaskCollaborationAppAPI.Data;
 using TaskCollaborationAppAPI.Hubs;
 using TaskCollaborationAppAPI.Repositories;
+using TaskCollaborationAppAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +21,10 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-//builder.Services.AddSingleton<JwtAuthService>();
+builder.Services.AddHostedService<TaskCleanupService>();
+
+/* Add Caching */
+builder.Services.AddMemoryCache();
 
 /* Add Signal R */
 builder.Services.AddSignalR();
