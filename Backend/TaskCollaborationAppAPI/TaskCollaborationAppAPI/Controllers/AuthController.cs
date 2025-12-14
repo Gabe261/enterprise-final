@@ -84,8 +84,100 @@ namespace TaskCollaborationAppAPI.Controllers
         }
 
         /* POST /api/auth/refresh == Refresh JWT Token */
+        [HttpPost("refresh")]
+        public ActionResult RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var secret = _configuration["JwtSettings:Secret"];
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secret));
 
-        /* GET /api/auth/me == Get cuurent user info */
+            // Validate the token without checking expiration
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateIssuer = true,
+                ValidIssuer = _configuration["JwtSettings:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = _configuration["JwtSettings:Audience"],
+                ValidateLifetime = false
+            };
+
+            var principal = tokenHandler.ValidateToken(request.Token, validationParameters, out var validatedToken);
+
+            // Get user ID from claims
+            var userIdClaim = principal.FindFirst("id");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized("Invalid token");
+            }
+
+            // Get user from database
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Generate new token using existing method
+            var newToken = GenerateJwtToken(user);
+            return Ok(new { token = newToken });
+        }
+
+        /* GET /api/auth/me == Get current user info */
+        [HttpGet("me")]
+        public ActionResult GetCurrentUser()
+        {
+            // Get token from Authorization header
+            var authHeader = Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return Unauthorized("No token provided");
+            }
+
+            var token = authHeader.Substring("Bearer ".Length).Trim();
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var secret = _configuration["JwtSettings:Secret"];
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secret));
+
+            // Validate token
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateIssuer = true,
+                ValidIssuer = _configuration["JwtSettings:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = _configuration["JwtSettings:Audience"],
+                ValidateLifetime = true
+            };
+
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+
+            // Get user ID from claims
+            var userIdClaim = principal.FindFirst("id");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized("Invalid token");
+            }
+
+            // Get user from database
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Return user info (without password hash)
+            return Ok(new
+            {
+                id = user.Id,
+                username = user.Username,
+                email = user.Email,
+                name = user.Name,
+                role = user.Role
+            });
+        }
 
 
         // Generate JWT Token Helper Method.

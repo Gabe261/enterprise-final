@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using TaskCollaborationApp.Web.Models;
 
 namespace TaskCollaborationApp.Web.Controllers
 {
@@ -46,16 +47,22 @@ namespace TaskCollaborationApp.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }
-
-        [HttpGet]
         public IActionResult Logout()
         {
             // localStorage.clear()
             return RedirectToAction("Login");
+        }
+
+        [HttpPost]
+        public IActionResult UpdateToken([FromBody] TokenUpdateRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Token))
+            {
+                return BadRequest("Token is required");
+            }
+
+            HttpContext.Session.SetString("JwtToken", request.Token);
+            return Ok();
         }
     }
 }
