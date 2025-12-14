@@ -49,8 +49,8 @@ namespace TaskCollaborationApp.Web.Controllers
         [HttpGet]
         public IActionResult Logout()
         {
-            // localStorage.clear()
-            return RedirectToAction("Login");
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index");
         }
 
         [HttpPost]

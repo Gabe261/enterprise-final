@@ -448,44 +448,35 @@
         }
 
         @@keyframes spin {
-            0%
+            0% {
+                transform: rotate(0deg);
+            }
 
-        {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         @@keyframes fadeIn {
-            from
+            from {
+                opacity: 0;
+            }
 
-        {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-
+            to {
+                opacity: 1;
+            }
         }
 
         @@keyframes slideUp {
-            from
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
 
-        {
-            transform: translateY(20px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .empty-state {
@@ -505,32 +496,26 @@
 
         /* Responsive */
         @@media (max-width: 1200px) {
-            .kanban-board
-
-        {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
+            .kanban-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         @@media (max-width: 768px) {
-            .kanban-board
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
 
-        {
-            grid-template-columns: 1fr;
-        }
+            .header {
+                flex-direction: column;
+                gap: 12px;
+            }
 
-        .header {
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .page-header {
-            flex-direction: column;
-            gap: 12px;
-            align-items: stretch;
-        }
-
+            .page-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
         }
     </style>
 </head>
@@ -540,7 +525,7 @@
         <div class="header-left">
             <div class="logo-text">Task</div>
             <nav class="nav-links">
-                <a href="/tasks/board" class="nav-link active">Board</a>
+                <a href="/tasks/index" class="nav-link active">Board</a>
                 <a href="/tasks/my" class="nav-link">My Tasks</a>
                 <a href="/tasks/all" class="nav-link" id="admin-link" style="display: none;">All Tasks</a>
             </nav>
@@ -680,7 +665,6 @@
 
         // Get token from ViewBag (Session)
         let JWT_TOKEN = '@ViewBag.Token';
-        console.log(`Token: ${JWT_TOKEN}`);
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -689,47 +673,95 @@
             await initializeSignalR();
         });
 
-        // Load current user
+        // Load current user from API
         async function loadCurrentUser() {
             if (!JWT_TOKEN || JWT_TOKEN === 'No token') {
                 window.location.href = '/Login';
                 return;
             }
 
-            // Set user info from ViewBag
-            const userName = '@ViewBag.Name';
-            const userRole = '@ViewBag.Role';
+            try {
+                // Fetch user info from API
+                const response = await fetch(`${API_URL}/api/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${JWT_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-            currentUser = {
-                userId: '@ViewBag.UserId',
-                name: userName,
-                role: userRole,
-                email: '@ViewBag.Email',
-                username: '@ViewBag.UserName'
-            };
-            document.getElementById('user-name').textContent = userName;
-            document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
+                if (response.ok) {
+                    const user = await response.json();
 
-            // Show admin link if user is admin
-            if (userRole === 'Admin') {
-                document.getElementById('admin-link').style.display = 'block';
+                    currentUser = {
+                        userId: user.id.toString(),
+                        name: user.name,
+                        role: user.role,
+                        email: user.email,
+                        username: user.username
+                    };
+
+                    // Update UI
+                    document.getElementById('user-name').textContent = user.name;
+                    document.getElementById('user-avatar').textContent = user.name.charAt(0).toUpperCase();
+
+                    // Show admin link if user is admin
+                    if (user.role === 'Admin') {
+                        document.getElementById('admin-link').style.display = 'block';
+                    }
+                } else if (response.status === 401) {
+                    // Token expired or invalid
+                    showToast('Session expired. Please login again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/Login';
+                    }, 2000);
+                } else {
+                    showToast('Failed to load user info', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading user:', error);
+                showToast('Connection error: ' + error.message, 'error');
             }
         }
 
-        // Open user modal
-        function openUserModal() {
-            if (!currentUser) return;
+        // Open user modal with API data
+        async function openUserModal() {
+            if (!currentUser) {
+                showToast('User information not loaded', 'error');
+                return;
+            }
 
-            document.getElementById('modal-name').textContent = currentUser.name;
-            document.getElementById('modal-username').textContent = currentUser.username;
-            document.getElementById('modal-email').textContent = currentUser.email;
-            document.getElementById('modal-userid').textContent = currentUser.userId;
+            // Refresh user info from API when opening modal
+            try {
+                const response = await fetch(`${API_URL}/api/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${JWT_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-            const roleBadge = document.getElementById('modal-role-badge');
-            roleBadge.textContent = currentUser.role;
-            roleBadge.className = `user-detail-badge ${currentUser.role === 'Admin' ? 'badge-admin' : 'badge-user'}`;
+                if (response.ok) {
+                    const user = await response.json();
 
-            document.getElementById('userModal').classList.add('show');
+                    // Update modal content
+                    document.getElementById('modal-name').textContent = user.name;
+                    document.getElementById('modal-username').textContent = user.username;
+                    document.getElementById('modal-email').textContent = user.email;
+                    document.getElementById('modal-userid').textContent = user.id;
+
+                    const roleBadge = document.getElementById('modal-role-badge');
+                    roleBadge.textContent = user.role;
+                    roleBadge.className = `user-detail-badge ${user.role === 'Admin' ? 'badge-admin' : 'badge-user'}`;
+
+                    document.getElementById('userModal').classList.add('show');
+                } else {
+                    showToast('Failed to load user info', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+                showToast('Connection error: ' + error.message, 'error');
+            }
         }
 
         // Close user modal
@@ -738,7 +770,7 @@
         }
 
         // Close modal when clicking outside
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             const modal = document.getElementById('userModal');
             if (event.target === modal) {
                 closeUserModal();
@@ -752,7 +784,6 @@
             btnRefresh.textContent = '🔄 Refreshing...';
 
             try {
-                console.log(`Original Token: ${JWT_TOKEN}`);
                 const response = await fetch(`${API_URL}/api/auth/refresh`, {
                     method: 'POST',
                     headers: {
@@ -763,9 +794,8 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(`Updated Token: ${data.token}`);
 
-                    try{
+                    try {
                         // Update session via server call
                         await fetch('/Login/UpdateToken', {
                             method: 'POST',
@@ -774,18 +804,21 @@
                             },
                             body: JSON.stringify({ token: data.token })
                         });
-                    }catch{
-                        console.log("Error while updating Token");
+
+                        showToast('Token refreshed successfully. Reloading...', 'success');
+
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } catch (error) {
+                        console.error("Error while updating Token:", error);
+                        showToast('Failed to update session', 'error');
+                        btnRefresh.disabled = false;
+                        btnRefresh.textContent = '🔄 Refresh Token';
                     }
-
-
-                    showToast('Token refreshed successfully. Reloading...', 'success');
-
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
                 } else {
-                    showToast('Failed to refresh token', 'error');
+                    const errorData = await response.json().catch(() => ({}));
+                    showToast(errorData.message || 'Failed to refresh token', 'error');
                     btnRefresh.disabled = false;
                     btnRefresh.textContent = '🔄 Refresh Token';
                 }
@@ -941,8 +974,8 @@
             if (connection) {
                 connection.stop();
             }
-            // Redirect to logout endpoint to clear session
-            window.location.href = '/Login/Index';
+            // Clear session and redirect to login
+            window.location.href = '/Login/Logout';
         }
 
         // Escape HTML
